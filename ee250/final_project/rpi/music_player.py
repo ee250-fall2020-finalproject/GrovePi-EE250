@@ -1,6 +1,7 @@
 import sys
 import paho.mqtt.client as mqtt
 import spotify_api
+from enum import Enum
 
 # By appending the folder of all the GrovePi libraries to the system path here,
 # we are successfully `import grovepi`
@@ -10,7 +11,6 @@ sys.path.append('../../Software/Python/grove_rgb_lcd')
 
 import grovepi  # noqa
 import grove_rgb_lcd  # noqa
-
 
 BUTTON = 2
 ROTARY = 0
@@ -56,6 +56,15 @@ client.on_connect = on_connect
 client.connect(host="eclipse.usc.edu", port=11000, keepalive=60)
 client.loop_start()
 
+button_counter = 0
+
 while True:
     if grovepi.digitalRead(BUTTON):
-        print(spotify_api.spotify_search("something"))
+        button_counter += 1
+    else:
+        if button_counter != 0:
+            if button_counter < 100:
+                print(spotify_api.spotify_search("something"))
+            else:
+                print("long press")
+            button_counter = 0

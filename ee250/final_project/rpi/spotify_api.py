@@ -26,4 +26,4 @@ def spotify_init():
 
 
 def spotify_search(query):
-    return spotifyObject.search(query)
+    return spotifyObject.search(query, 5)
