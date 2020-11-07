@@ -12,10 +12,22 @@ sys.path.append('../../Software/Python/grove_rgb_lcd')
 import grovepi  # noqa
 import grove_rgb_lcd  # noqa
 
+
+class State(Enum):
+    START = 0
+    INPUT = 1
+    RESULT = 2
+    PLAYER = 3
+
+
+state = State.START
+
 BUTTON = 2
 ROTARY = 0
 
 search_text = ""
+
+search_results = []
 
 
 def on_connect(client, userdata, flags, rc):
@@ -28,7 +40,25 @@ def on_connect(client, userdata, flags, rc):
 
 def on_input(client, userdata, msg):
     global search_text
-    if len(msg) == 1:
+    global state
+    if state == State.RESULT or state == State.PLAYER:
+        return
+    if len(msg) != 1:
+        return
+    if state == State.START:
+        state = State.INPUT
+    if msg == '\n':
+        global cursor_location
+        global search_results
+        state = state.RESULT
+        results = spotify_api.spotify_search(search_text)
+        for result in results["items"]:
+            search_results.append(
+                {"name": result["name"], "id": result["id"]})
+        search_text = ""
+        cursor_location = 0
+        grove_rgb_lcd.setText(search_results[cursor_location]["name"])
+    else:
         search_text += msg
         if len(search_text) == 1:
             grove_rgb_lcd.setText(search_text)
@@ -44,7 +74,7 @@ grovepi.pinMode(BUTTON, "INPUT")
 grovepi.pinMode(ROTARY, "INPUT")
 
 # Initialize screen
-grove_rgb_lcd.setText("Start typing\n to search music")
+grove_rgb_lcd.setText("Start typing\nto search music")
 
 # Initialize Spotify
 spotify_api.spotify_init()
@@ -57,14 +87,45 @@ client.connect(host="eclipse.usc.edu", port=11000, keepalive=60)
 client.loop_start()
 
 button_counter = 0
+cursor_location = 0
+displaying_songs = False
+play = True
 
 while True:
-    if grovepi.digitalRead(BUTTON):
-        button_counter += 1
-    else:
-        if button_counter != 0:
-            if button_counter < 100:
-                print(spotify_api.spotify_search("something"))
-            else:
-                print("long press")
-            button_counter = 0
+    # Check button
+    if state == state.RESULT:
+        if grovepi.digitalRead(BUTTON):
+            button_counter += 1
+        else:
+            if button_counter != 0:
+                client.publish("/ee250musicplayer/song",
+                               search_results[cursor_location]["id"])
+                state = State.PLAYER
+                search_results = {}
+                button_counter = 0
+    elif state == State.PLAYER:
+        if grovepi.digitalRead(BUTTON):
+            button_counter += 1
+        else:
+            if button_counter != 0:
+                if button_counter < 100:
+                    # Short press for play and pause
+                    play = not play
+                    client.publish("/ee250musicplayer/playpause",
+                                   "Play" if play else "Pause")
+                else:
+                    # Long press to go back to home page
+                    state = State.START
+                    grove_rgb_lcd.setText("Start typing\nto search music")
+                button_counter = 0
+
+    # Check rotary encoder
+    if state == State.RESULT:
+        rotary = grovepi.analogRead(ROTARY)
+        new_cursor_location = (int)(rotary / 205)
+        if new_cursor_location != cursor_location:
+            cursor_location = new_cursor_location
+            grove_rgb_lcd.setText(search_results[cursor_location]["name"])
+    elif state == State.PLAYER:
+        rotary = grovepi.analogRead(ROTARY)
+        client.publish("/ee250musicplayer/volume", (str)(rotary))
