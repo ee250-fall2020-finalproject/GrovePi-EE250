@@ -58,4 +58,4 @@ client.loop_start()
 
 while True:
     if grovepi.digitalRead(BUTTON):
-        print(spotify_api.search("something"))
+        print(spotify_api.spotify_search("something"))
