@@ -31,14 +31,16 @@ search_results = []
 
 
 def on_connect(client, userdata, flags, rc):
+    """ Handle MQTT connection """
     print("Connected to server (i.e., broker) with result code "+str(rc))
 
-    # subscribe to topics of interest here
+    # subscribe to keyboard input
     client.subscribe('/ee250musicplayer/input')
     client.message_callback_add('/ee250musicplayer/input', on_input)
 
 
 def on_input(client, userdata, msg):
+    """ Handle keyboard input when in INPUT state """
     global search_text
     global state
     if state == State.RESULT or state == State.PLAYER:
@@ -48,6 +50,7 @@ def on_input(client, userdata, msg):
     if state == State.START:
         state = State.INPUT
     if msg == '\n':
+        # Message ended, search and switch to RESULT state
         global cursor_location
         global search_results
         state = state.RESULT
@@ -59,6 +62,7 @@ def on_input(client, userdata, msg):
         cursor_location = 0
         grove_rgb_lcd.setText(search_results[cursor_location]["name"])
     else:
+        # Part of the message, print and keep listening
         search_text += msg
         if len(search_text) == 1:
             grove_rgb_lcd.setText(search_text)
@@ -67,9 +71,25 @@ def on_input(client, userdata, msg):
 
 
 def on_message(client, userdata, msg):
+    """ Generic messag handle """
     print("on_message: " + msg.topic + " " + str(msg.payload, "utf-8"))
 
 
+def update_player_display(name, playing, volume):
+    """ Update player display
+    name: name of song
+    playing: True or False
+    volume: 0-100
+    """
+    display = name[0:18] + "\n"
+    if playing:
+        display += "playing        "
+    else:
+        display += "paused         "
+
+    display += (str)(volume)
+
+    # Configure pins
 grovepi.pinMode(BUTTON, "INPUT")
 grovepi.pinMode(ROTARY, "INPUT")
 
@@ -97,12 +117,14 @@ while True:
         if grovepi.digitalRead(BUTTON):
             button_counter += 1
         else:
+            # Press to select songs
             if button_counter != 0:
                 client.publish("/ee250musicplayer/song",
                                search_results[cursor_location]["id"])
                 state = State.PLAYER
                 search_results = {}
                 button_counter = 0
+
     elif state == State.PLAYER:
         if grovepi.digitalRead(BUTTON):
             button_counter += 1
@@ -121,11 +143,13 @@ while True:
 
     # Check rotary encoder
     if state == State.RESULT:
+        # Scroll throw results in RESULT state
         rotary = grovepi.analogRead(ROTARY)
         new_cursor_location = (int)(rotary / 205)
         if new_cursor_location != cursor_location:
             cursor_location = new_cursor_location
             grove_rgb_lcd.setText(search_results[cursor_location]["name"])
     elif state == State.PLAYER:
+        # Adjust volume in PLAYER mode
         rotary = grovepi.analogRead(ROTARY)
         client.publish("/ee250musicplayer/volume", (str)(rotary))
