@@ -1,4 +1,5 @@
 import sys
+import threading
 import paho.mqtt.client as mqtt
 import spotify_api
 from enum import Enum
@@ -21,6 +22,7 @@ class State(Enum):
 
 
 state = State.START
+lock = threading.Lock()
 
 BUTTON = 2
 ROTARY = 0
@@ -55,19 +57,23 @@ def on_input(client, userdata, msg):
         global search_results
         state = state.RESULT
         results = spotify_api.spotify_search(search_text)
-        for result in results["items"]:
+        for result in results["tracks"]["items"]:
             search_results.append(
                 {"name": result["name"], "id": result["id"]})
         search_text = ""
         cursor_location = 0
+        lock.acquire()
         grove_rgb_lcd.setText(search_results[cursor_location]["name"])
+        lock.release()
     else:
         # Part of the message, print and keep listening
         search_text += str(msg.payload, 'utf-8')
+        lock.acquire()
         if len(search_text) == 1:
             grove_rgb_lcd.setText(search_text)
         else:
             grove_rgb_lcd.setText_norefresh(search_text)
+        lock.release()
 
 
 def on_message(client, userdata, msg):
@@ -88,6 +94,7 @@ def update_player_display(name, playing, volume):
         display += "paused         "
 
     display += (str)(volume)
+
 
     # Configure pins
 grovepi.pinMode(BUTTON, "INPUT")
@@ -114,7 +121,10 @@ play = True
 while True:
     # Check button
     if state == state.RESULT:
-        if grovepi.digitalRead(BUTTON):
+        lock.acquire()
+        button_reading = grovepi.digitalRead(BUTTON)
+        lock.release()
+        if button_reading:
             button_counter += 1
         else:
             # Press to select songs
@@ -126,7 +136,10 @@ while True:
                 button_counter = 0
 
     elif state == State.PLAYER:
-        if grovepi.digitalRead(BUTTON):
+        lock.acquire()
+        button_reading = grovepi.digitalRead(BUTTON)
+        lock.release()
+        if button_reading:
             button_counter += 1
         else:
             if button_counter != 0:
@@ -144,12 +157,16 @@ while True:
     # Check rotary encoder
     if state == State.RESULT:
         # Scroll throw results in RESULT state
+        lock.acquire()
         rotary = grovepi.analogRead(ROTARY)
+        lock.release()
         new_cursor_location = (int)(rotary / 205)
         if new_cursor_location != cursor_location:
             cursor_location = new_cursor_location
             grove_rgb_lcd.setText(search_results[cursor_location]["name"])
     elif state == State.PLAYER:
         # Adjust volume in PLAYER mode
+        lock.acquire()
         rotary = grovepi.analogRead(ROTARY)
+        lock.release()
         client.publish("/ee250musicplayer/volume", (str)(rotary))
