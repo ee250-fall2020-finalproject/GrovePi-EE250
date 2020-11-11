@@ -171,7 +171,7 @@ while True:
     elif state == State.PLAYER:
         # Adjust volume in PLAYER mode
         rotary = grovepi.analogRead(ROTARY)
-        new_volume = (int)(rotary / 10.24)
+        new_volume = (int)(rotary / 51.2) * 5
         if new_volume != volume:
             update_player_display(
                 currently_playing, play, volume)
