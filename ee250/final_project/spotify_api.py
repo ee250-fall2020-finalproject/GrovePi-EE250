@@ -61,6 +61,6 @@ def spotify_playpause(playpause):
     global spotifyObject
     global tracks
     if playpause:
-        spotifyObject.start_playback(deviceID, None, tracks)
+        spotifyObject.start_playback()
     else:
         spotifyObject.pause_playback(deviceID)

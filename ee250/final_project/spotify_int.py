@@ -21,7 +21,7 @@ def on_connect(client, userdata, flags, rc):
     client.message_callback_add('/ee250musicplayer/volume', on_volume)
 
     # subscribe to palypause
-    client.subscribe('/ee250musicplayer/volume')
+    client.subscribe('/ee250musicplayer/playpause')
     client.message_callback_add('/ee250musicplayer/playpause', on_playpause)
 
 

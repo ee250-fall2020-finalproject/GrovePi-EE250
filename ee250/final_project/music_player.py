@@ -131,7 +131,7 @@ while True:
                                search_results[cursor_location]["id"])
                 state = State.PLAYER
                 rotary = grovepi.analogRead(ROTARY)
-                volume = (int)(rotary / 10.24)
+                volume = (int)(rotary / 50.9) * 5
                 client.publish("/ee250musicplayer/volume", (str)(volume))
                 currently_playing = search_results[cursor_location]["name"]
                 update_player_display(
@@ -172,7 +172,7 @@ while True:
     elif state == State.PLAYER:
         # Adjust volume in PLAYER mode
         rotary = grovepi.analogRead(ROTARY)
-        new_volume = (int)(rotary / 51.2) * 5
+        new_volume = (int)(rotary / 50.9) * 5
         if new_volume != volume:
             update_player_display(
                 currently_playing, play, volume)
