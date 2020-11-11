@@ -51,6 +51,7 @@ def on_input(client, userdata, msg):
         return
     if state == State.START:
         state = State.INPUT
+    lock.acquire()
     if str(msg.payload, 'utf-8') == '\n':
         # Message ended, search and switch to RESULT state
         global cursor_location
@@ -62,18 +63,15 @@ def on_input(client, userdata, msg):
                 {"name": result["name"], "id": result["id"]})
         search_text = ""
         cursor_location = 0
-        lock.acquire()
         grove_rgb_lcd.setText(search_results[cursor_location]["name"])
-        lock.release()
     else:
         # Part of the message, print and keep listening
         search_text += str(msg.payload, 'utf-8')
-        lock.acquire()
         if len(search_text) == 1:
             grove_rgb_lcd.setText(search_text)
         else:
             grove_rgb_lcd.setText_norefresh(search_text)
-        lock.release()
+    lock.release()
 
 
 def on_message(client, userdata, msg):
@@ -119,11 +117,10 @@ displaying_songs = False
 play = True
 
 while True:
+    lock.acquire()
     # Check button
     if state == state.RESULT:
-        lock.acquire()
         button_reading = grovepi.digitalRead(BUTTON)
-        lock.release()
         if button_reading:
             button_counter += 1
         else:
@@ -136,9 +133,7 @@ while True:
                 button_counter = 0
 
     elif state == State.PLAYER:
-        lock.acquire()
         button_reading = grovepi.digitalRead(BUTTON)
-        lock.release()
         if button_reading:
             button_counter += 1
         else:
@@ -157,16 +152,13 @@ while True:
     # Check rotary encoder
     if state == State.RESULT:
         # Scroll throw results in RESULT state
-        lock.acquire()
         rotary = grovepi.analogRead(ROTARY)
-        lock.release()
-        new_cursor_location = (int)(rotary / 102.4)
+        new_cursor_location = (int)(rotary / 103)
         if new_cursor_location != cursor_location:
             cursor_location = new_cursor_location
             grove_rgb_lcd.setText(search_results[cursor_location]["name"])
     elif state == State.PLAYER:
         # Adjust volume in PLAYER mode
-        lock.acquire()
         rotary = grovepi.analogRead(ROTARY)
-        lock.release()
         client.publish("/ee250musicplayer/volume", (str)(rotary))
+    lock.release()
