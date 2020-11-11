@@ -85,13 +85,14 @@ def update_player_display(name, playing, volume):
     playing: True or False
     volume: 0-100
     """
-    display = name[0:17] + "\n"
+    display = name[0:16] + "\n"
     if playing:
-        display += "playing        "
+        display += "playing      "
     else:
-        display += "paused         "
+        display += "paused       "
 
     display += (str)(volume)
+    grove_rgb_lcd.setText(display)
 
     # Configure pins
 grovepi.pinMode(BUTTON, "INPUT")
