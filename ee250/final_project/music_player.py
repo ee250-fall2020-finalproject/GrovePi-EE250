@@ -159,6 +159,7 @@ while True:
                     play = True
                     volume = 50
                     currently_playing = ""
+                    client.publish("/ee250musicplayer/playpause", "Pause")
                 button_counter = 0
 
     # Check rotary encoder
