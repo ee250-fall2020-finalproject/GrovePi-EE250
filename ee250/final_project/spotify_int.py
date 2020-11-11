@@ -1,6 +1,7 @@
 # Import libraries
 import paho.mqtt.client as mqtt
 import spotify_api
+from pynput import keyboard
 
 
 def on_connect(client, userdata, flags, rc):
@@ -17,7 +18,7 @@ def on_connect(client, userdata, flags, rc):
 
     # subscribe to palypause
     client.subscribe('/ee250musicplayer/volume')
-    client.message_callback_add('/ee250musicplayer/playpausee', on_playpausee)
+    client.message_callback_add('/ee250musicplayer/playpause', on_playpausee)
 
 
 def on_message(client, userdata, msg):
@@ -40,11 +41,22 @@ def on_playpausee(client, userdata, msg):
     pass
 
 
-spotify_api.spotify_init()
+def on_press(key):
+    try:
+        k = key.char
+    except:
+        return
 
+    client.publish('/ee250musicplayer/input', k)
+
+
+spotify_api.spotify_init()
 
 client = mqtt.Client()
 client.on_message = on_message
 client.on_connect = on_connect
 client.connect(host="eclipse.usc.edu", port=11000, keepalive=60)
 client.loop_start()
+
+lis = keyboard.Listener(on_press=on_press)
+lis.start()
