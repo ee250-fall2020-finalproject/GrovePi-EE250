@@ -5,6 +5,8 @@ import spotify_api
 import time
 from pynput import keyboard
 
+exit = False
+
 
 def on_connect(client, userdata, flags, rc):
     """ Handle MQTT connection """
@@ -46,11 +48,12 @@ def on_playpause(client, userdata, msg):
 def on_press(key):
     try:
         k = key.char
-    except:
+    except AttributeError:
+        if key == keyboard.Key.enter:
+            client.publish('/ee250musicplayer/input', '\n')
         return
 
     print(k)
-
     client.publish('/ee250musicplayer/input', k)
 
 
@@ -65,5 +68,5 @@ client.loop_start()
 lis = keyboard.Listener(on_press=on_press)
 lis.start()
 
-while True:
-    time.sleep(1)
+while not exit:
+    time.sleep(0.1)
