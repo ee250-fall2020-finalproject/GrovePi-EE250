@@ -93,7 +93,6 @@ def update_player_display(name, playing, volume):
 
     display += (str)(volume)
 
-
     # Configure pins
 grovepi.pinMode(BUTTON, "INPUT")
 grovepi.pinMode(ROTARY, "INPUT")
@@ -113,8 +112,8 @@ client.loop_start()
 
 button_counter = 0
 cursor_location = 0
-displaying_songs = False
 play = True
+volume = 50
 
 while True:
     lock.acquire()
@@ -129,7 +128,12 @@ while True:
                 client.publish("/ee250musicplayer/song",
                                search_results[cursor_location]["id"])
                 state = State.PLAYER
-                search_results = {}
+                rotary = grovepi.analogRead(ROTARY)
+                volume = (int)(rotary / 10.24)
+                client.publish("/ee250musicplayer/volume", (str)(volume))
+                update_player_display(
+                    search_results[cursor_location]["name"], play, volume)
+                search_results = []
                 button_counter = 0
 
     elif state == State.PLAYER:
@@ -143,10 +147,14 @@ while True:
                     play = not play
                     client.publish("/ee250musicplayer/playpause",
                                    "Play" if play else "Pause")
+                    update_player_display(
+                        search_results[cursor_location]["name"], play, volume)
                 else:
                     # Long press to go back to home page
                     state = State.START
                     grove_rgb_lcd.setText("Start typing\nto search music")
+                    play = True
+                    volume = 50
                 button_counter = 0
 
     # Check rotary encoder
@@ -160,5 +168,8 @@ while True:
     elif state == State.PLAYER:
         # Adjust volume in PLAYER mode
         rotary = grovepi.analogRead(ROTARY)
-        client.publish("/ee250musicplayer/volume", (str)(rotary))
+        volume = (int)(rotary / 10.24)
+        update_player_display(
+            search_results[cursor_location]["name"], play, volume)
+        client.publish("/ee250musicplayer/volume", (str)(volume))
     lock.release()
