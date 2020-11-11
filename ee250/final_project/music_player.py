@@ -45,11 +45,11 @@ def on_input(client, userdata, msg):
     global state
     if state == State.RESULT or state == State.PLAYER:
         return
-    if len(msg) != 1:
+    if len(str(msg.payload, 'utf-8')) != 1:
         return
     if state == State.START:
         state = State.INPUT
-    if msg == '\n':
+    if str(msg.payload, 'utf-8') == '\n':
         # Message ended, search and switch to RESULT state
         global cursor_location
         global search_results
@@ -63,7 +63,7 @@ def on_input(client, userdata, msg):
         grove_rgb_lcd.setText(search_results[cursor_location]["name"])
     else:
         # Part of the message, print and keep listening
-        search_text += msg
+        search_text += str(msg.payload, 'utf-8')
         if len(search_text) == 1:
             grove_rgb_lcd.setText(search_text)
         else:
