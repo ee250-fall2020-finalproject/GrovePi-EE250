@@ -32,17 +32,20 @@ def on_message(client, userdata, msg):
 
 def on_song(client, userdata, msg):
     """ Player song with song id 'msg'"""
-    pass
+    spotify_api.spotify_play(str(msg.payload, "utf-8"))
 
 
 def on_volume(client, userdata, msg):
     """ Adjust volume """
-    pass
+    spotify_api.spotify_set_volume(int(str(msg.payload, "utf-8")))
 
 
 def on_playpause(client, userdata, msg):
     """ Play or pause """
-    pass
+    if str(msg.payload, "utf-8") == "Play":
+        spotify_api.spotify_playpause(True)
+    elif str(msg.payload, "utf-8") == "Pause":
+        spotify_api.spotify_playpause(False)
 
 
 def on_press(key):
