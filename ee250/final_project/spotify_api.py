@@ -46,7 +46,7 @@ def spotify_play(track_id):
     global spotifyObject
     global tracks
     track = spotifyObject.track(track_id)
-    tracks = [track]
+    tracks = [track["uri"]]
     spotifyObject.start_playback(deviceID, None, tracks)
 
 

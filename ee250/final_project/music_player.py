@@ -93,6 +93,7 @@ def update_player_display(name, playing, volume):
 
     display += (str)(volume)
 
+
     # Configure pins
 grovepi.pinMode(BUTTON, "INPUT")
 grovepi.pinMode(ROTARY, "INPUT")
@@ -114,6 +115,7 @@ button_counter = 0
 cursor_location = 0
 play = True
 volume = 50
+currently_playing = ""
 
 while True:
     lock.acquire()
@@ -131,8 +133,9 @@ while True:
                 rotary = grovepi.analogRead(ROTARY)
                 volume = (int)(rotary / 10.24)
                 client.publish("/ee250musicplayer/volume", (str)(volume))
+                currently_playing = search_results[cursor_location]["name"]
                 update_player_display(
-                    search_results[cursor_location]["name"], play, volume)
+                    currently_playing, play, volume)
                 search_results = []
                 button_counter = 0
 
@@ -148,13 +151,14 @@ while True:
                     client.publish("/ee250musicplayer/playpause",
                                    "Play" if play else "Pause")
                     update_player_display(
-                        search_results[cursor_location]["name"], play, volume)
+                        currently_playing, play, volume)
                 else:
                     # Long press to go back to home page
                     state = State.START
                     grove_rgb_lcd.setText("Start typing\nto search music")
                     play = True
                     volume = 50
+                    currently_playing = ""
                 button_counter = 0
 
     # Check rotary encoder
@@ -170,6 +174,6 @@ while True:
         rotary = grovepi.analogRead(ROTARY)
         volume = (int)(rotary / 10.24)
         update_player_display(
-            search_results[cursor_location]["name"], play, volume)
+            currently_playing, play, volume)
         client.publish("/ee250musicplayer/volume", (str)(volume))
     lock.release()
