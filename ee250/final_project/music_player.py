@@ -85,7 +85,7 @@ def update_player_display(name, playing, volume):
     playing: True or False
     volume: 0-100
     """
-    display = name[0:18] + "\n"
+    display = name[0:17] + "\n"
     if playing:
         display += "playing        "
     else:
