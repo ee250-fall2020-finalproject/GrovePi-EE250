@@ -103,7 +103,7 @@ while True:
         print(artist['name'])
         print(artist['genres'][0])
         print()
-        webbrowser.open(artist['images'][0]['url'])
+        #webbrowser.open(artist['images'][0]['url'])
         artistID = artist['id']
         # Album details
         trackURIs = []
