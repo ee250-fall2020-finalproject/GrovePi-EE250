@@ -38,7 +38,7 @@ def spotify_init():
 
 
 def spotify_search(query):
-    return spotifyObject.search(query, 5)
+    return spotifyObject.search(query, 10)
 
 
 def spotify_play(track_id):

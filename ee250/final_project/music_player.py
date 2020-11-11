@@ -160,7 +160,7 @@ while True:
         lock.acquire()
         rotary = grovepi.analogRead(ROTARY)
         lock.release()
-        new_cursor_location = (int)(rotary / 205)
+        new_cursor_location = (int)(rotary / 102.4)
         if new_cursor_location != cursor_location:
             cursor_location = new_cursor_location
             grove_rgb_lcd.setText(search_results[cursor_location]["name"])
