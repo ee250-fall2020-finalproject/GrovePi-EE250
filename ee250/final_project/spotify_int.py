@@ -37,11 +37,13 @@ def on_song(client, userdata, msg):
 
 def on_volume(client, userdata, msg):
     """ Adjust volume """
+    print(str(msg.payload, "utf-8"))
     spotify_api.spotify_set_volume(int(str(msg.payload, "utf-8")))
 
 
 def on_playpause(client, userdata, msg):
     """ Play or pause """
+    print(str(msg.payload, "utf-8"))
     if str(msg.payload, "utf-8") == "Play":
         spotify_api.spotify_playpause(True)
     elif str(msg.payload, "utf-8") == "Pause":

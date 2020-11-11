@@ -93,7 +93,6 @@ def update_player_display(name, playing, volume):
 
     display += (str)(volume)
 
-
     # Configure pins
 grovepi.pinMode(BUTTON, "INPUT")
 grovepi.pinMode(ROTARY, "INPUT")
@@ -172,8 +171,10 @@ while True:
     elif state == State.PLAYER:
         # Adjust volume in PLAYER mode
         rotary = grovepi.analogRead(ROTARY)
-        volume = (int)(rotary / 10.24)
-        update_player_display(
-            currently_playing, play, volume)
-        client.publish("/ee250musicplayer/volume", (str)(volume))
+        new_volume = (int)(rotary / 10.24)
+        if new_volume != volume:
+            update_player_display(
+                currently_playing, play, volume)
+            client.publish("/ee250musicplayer/volume", (str)(volume))
+            volume = new_volume
     lock.release()
