@@ -3,6 +3,11 @@ Author: <Arvind Mehairjan>
 Date: <12-09-2019>
 Availability: <https://bit.ly/3po36yN> """
 #spotipy documentation - https://spotipy.readthedocs.io/en/2.16.1/
+
+
+#Team Members -- Jaylen Jackson and Haowen Liu
+#Repo Link -- https://github.com/ee250-fall2020-finalproject/GrovePi-EE250
+
 import os
 import sys
 import spotipy
