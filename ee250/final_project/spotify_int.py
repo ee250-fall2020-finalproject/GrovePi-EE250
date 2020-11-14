@@ -1,3 +1,6 @@
+# Team Members -- Jaylen Jackson and Haowen Liu
+# Repo Link -- https://github.com/ee250-fall2020-finalproject/GrovePi-EE250
+
 # Import libraries
 from threading import Thread
 import paho.mqtt.client as mqtt
